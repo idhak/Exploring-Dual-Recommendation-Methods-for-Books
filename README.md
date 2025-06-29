@@ -232,9 +232,9 @@ Terdapat beberapa teknik data preparation yang dilakukan pada bagian ini yaitu s
 
 Pada tahap ini, membuat salinan (*copy*) dari **dataframe** `books_ratings` dan menyimpannya ke variabel baru bernama `df` terlebih dahulu agar perubahan yang dilakukan pada `df` tidak akan memengaruhi **dataframe** asli `books_ratings`. Berikut kode perintahnya.
 
-    ```
-    df = books_ratings.copy()
-    ```
+```
+df = books_ratings.copy()
+```
 
 ### ▶️ Clean Book-Title
 
@@ -248,7 +248,7 @@ Pembersihan judul buku dengan menghapus karakter non-alfanumerik dan spasi berle
 
     ```
     df.drop(columns=["ISBN", "Image-URL-S", "Image-URL-M", "Image-URL-L"], inplace=True)
-    ```
+    ``` 
 
 Kolom `ISBN` dan URL gambar dihapus karena tidak relevan dalam pembuatan model rekomendasi berbasis konten atau kolaboratif. `ISBN` merupakan identifier yang tidak membawa informasi konten buku, sementara URL gambar tidak diperlukan untuk analisis preferensi.
 
