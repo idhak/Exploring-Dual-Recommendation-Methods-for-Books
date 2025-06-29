@@ -219,7 +219,7 @@ Berdasarkan visualisasi di atas, dapat disimpulkan bahwa:
 
 Pada tahap ini, menggabungkan dataset `books` dan `ratings` lalu menyimpannya ke dalam dataset baru yang bernama `books_ratings`. Berikut kode perintah dari merger dataset `books` dan `ratings`.
 
-```
+```python
 books_ratings=books.merge(ratings,on="ISBN")
 books_ratings.head()
 ```
