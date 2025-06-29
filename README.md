@@ -217,7 +217,7 @@ Berdasarkan visualisasi di atas, dapat disimpulkan bahwa:
 
 Pada tahap ini, menggabungkan dataset `books` dan `ratings` lalu menyimpannya ke dalam dataset baru yang bernama `books_ratings`. Berikut kode perintah dari merger dataset `books` dan `ratings`.
 
-```python
+```
 books_ratings=books.merge(ratings,on="ISBN")
 books_ratings.head()
 ```
@@ -228,66 +228,66 @@ books_ratings.head()
 
 Terdapat beberapa teknik data preparation yang dilakukan pada bagian ini yaitu sebagai berikut.
 
-### Copy Dataset
+### ▶️ Copy Dataset
 
 Pada tahap ini, membuat salinan (*copy*) dari **dataframe** `books_ratings` dan menyimpannya ke variabel baru bernama `df` terlebih dahulu agar perubahan yang dilakukan pada `df` tidak akan memengaruhi **dataframe** asli `books_ratings`. Berikut kode perintahnya.
 
-    ```python
+    ```
     df = books_ratings.copy()
     ```
 
-### Clean Book-Title
+### ▶️ Clean Book-Title
 
-    ```python
+    ```
     df["Book-Title"] = df["Book-Title"].apply(lambda x: re.sub("[\W_]+", " ", x).strip())
     ```
 
 Pembersihan judul buku dengan menghapus karakter non-alfanumerik dan spasi berlebih dilakukan untuk standarisasi data teks. Hal ini akan meningkatkan akurasi dalam perbandingan judul buku dan mencegah duplikasi akibat perbedaan format penulisan.
 
-### Drop Irrelevant Columns
+### ▶️ Drop Irrelevant Columns
 
-    ```python
+    ```
     df.drop(columns=["ISBN", "Image-URL-S", "Image-URL-M", "Image-URL-L"], inplace=True)
     ```
 
 Kolom `ISBN` dan URL gambar dihapus karena tidak relevan dalam pembuatan model rekomendasi berbasis konten atau kolaboratif. `ISBN` merupakan identifier yang tidak membawa informasi konten buku, sementara URL gambar tidak diperlukan untuk analisis preferensi.
 
-### Drop Ratings == 0 and Missing Values
+### ▶️ Drop Ratings == 0 and Missing Values
 
-    ```python
+    ```
     df.drop(index=df[df["Book-Rating"]==0].index, inplace=True)
     df.dropna(inplace=True)
     ```
 
 Baris dengan nilai kosong dan rating = 0 dihapus karena tidak memberikan informasi preferensi pengguna.
 
-### Reset Index
+### ▶️ Reset Index
 
-    ```python
+    ```
     df.reset_index(drop=True,inplace=True)
     ```
 
 Reset index dilakukan setelah penghapusan baris untuk memastikan indeks tetap berurutan dan tidak ada gap. Hal ini dilakukan untuk konsistensi dan memudahkan dalam mengakses data berdasarkan indeks.
 
-### Remove DuplicateS/Handling Duplicate untuk Content-Based Filtering
+### ▶️ Remove DuplicateS/Handling Duplicate untuk Content-Based Filtering
 
-    ```python
+    ```
     cbf_df = df.drop_duplicates('Book-Title')
     ```
 
 Data duplikat pada kolom judul buku dihapus untuk menghindari bias dan pengulangan.
 
-### Sampling Data untuk Content-Based Filtering
+### ▶️ Sampling Data untuk Content-Based Filtering
 
-    ```python
+    ```
     cbf_df = cbf_df.sample(10000, random_state=42)
     ```
 
 Membatasi jumlah maksimum buku sebesar 10.000 agar menghindari *Out of Memory* saat proses *similarity*.
 
-### Ekstraksi Fitur dengan TF-IDF untuk Content-Based Filtering
+### ▶️ Ekstraksi Fitur dengan TF-IDF untuk Content-Based Filtering
 
-    ```python
+    ```
     cbf_df['content'] = cbf_df['Book-Title'] + ' ' + cbf_df['Book-Author'] + ' ' + cbf_df['Publisher']
     tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
     tfidf_matrix = tfidf.fit_transform(cbf_df['content'])
@@ -295,9 +295,9 @@ Membatasi jumlah maksimum buku sebesar 10.000 agar menghindari *Out of Memory* s
 
 Fitur teks digabung dari kolom `Book-Title`, `Book-Author`, dan `Publisher`. Kemudian ditransformasikan ke bentuk vektor numerik menggunakan TF-IDF.
 
-### Filtering Data untuk Collaborative Filtering
+### ▶️ Filtering Data untuk Collaborative Filtering
 
-    ```python
+    ```
     book_counts = df['Book-Title'].value_counts()
     user_counts = df['User-ID'].value_counts()
     filtered_books = book_counts[book_counts >= 15].index
@@ -307,9 +307,9 @@ Fitur teks digabung dari kolom `Book-Title`, `Book-Author`, dan `Publisher`. Kem
 
 Melakukan filtering user dan buku dengan minimal 15 rating, sehingga data yang dihasilkan `cf_df` lebih cocok untuk dianalisis menggunakan teknik *collaborative filtering*.
 
-### Mapping Data untuk Collaborative Filtering
+### ▶️ Mapping Data untuk Collaborative Filtering
 
-    ```python
+    ```
     user_ids = cf_df['User-ID'].unique().tolist()
     book_ids = cf_df['Book-Title'].unique().tolist()
     user_to_index = {user: i for i, user in enumerate(user_ids)}
@@ -320,9 +320,9 @@ Melakukan filtering user dan buku dengan minimal 15 rating, sehingga data yang d
 
 Melakukan mapping data yang bertujuan untuk mengubah ID pengguna dan judul buku (yang berupa string atau angka asli) menjadi angka berurutan. Hal ini sering dilakukan untuk memudahkan pemrosesan oleh model *machine learning* terutama model yang bekerja dengan matriks atau *array* numerik dan membuat representasi data yang lebih ringkas dalam beberapa algoritma.
 
-### Split Train/Test untuk Collaborative Filtering
+### ▶️ Split Train/Test untuk Collaborative Filtering
 
-    ```python
+    ```
     train_data, test_data = train_test_split(cf_df, test_size=0.2,  random_state=42)
     ```
 
@@ -333,17 +333,17 @@ Dataset *collaborative filtering* dibagi menjadi *data training* dan *testing* d
 ## 🤖 Modeling
 Dalam proyek ini, dua pendekatan pemodelan sistem rekomendasi telah diimplementasikan yaitu *content-based filtering* dan *collaborative filtering*.
 
-### Content-Based Filtering
+### 🧠 Content-Based Filtering
 
 *Content-based filtering* diimplementasikan dengan menggunakan *TF-IDF vectorizer* dan *cosine similarity* untuk mengidentifikasi kemiripan antara buku berdasarkan atribut tekstual. Alasan menggunakan model ini karena tidak membutuhkan data pengguna lain dan cocok untuk *cold-start* pengguna.
 
 Cara kerjanya model ini, yaitu pertama memeriksa apakah judul buku ada dalam *database* (*dictionary indices*); jika tidak ditemukan, fungsi mengembalikan pesan *error*. Jika buku ditemukan, fungsi mengambil indeks buku tersebut, kemudian mengakses nilai kesamaan buku ini dengan semua buku lain dari matriks `cosine_sim`. Hasil kesamaan dikonversi menjadi list dan diurutkan dari tertinggi ke terendah, mengabaikan kesamaan dengan dirinya sendiri (indeks ke-0), dan hanya mengambil `top_n` buku teratas. Fungsi kemudian mengekstrak indeks buku-buku yang direkomendasikan, mengambil informasi buku (`Book-Title`, `Book-Author`, `Publisher`, `Year-Of-Publication`) dari **dataframe** `cbf_df`, menambahkan kolom skor kesamaan, dan mengembalikan hasil rekomendasi final.
 
-#### Example of Using Content-Based Filtering Recommendations
+#### **Example of Using Content-Based Filtering Recommendations**
 
 Sistem rekomendasi *content-based filtering* pada proyek ini dijalankan menggunakan fungsi berbasis input pengguna. Berikut adalah implementasi kode dan penjelasannya:
 
-    ```python
+    ```
     # Contoh rekomendasi content-based filtering
     def interactive_content_based_recommendation(indices, recommendation_func, fallback=True):
         book_title = input("Masukkan judul buku: ").strip()
@@ -363,11 +363,11 @@ Sistem rekomendasi *content-based filtering* pada proyek ini dijalankan mengguna
     interactive_content_based_recommendation(indices, content_based_recommendations)
     ```
 
-##### Penjelasan Kode
+##### **Penjelasan Kode**
 
 Fungsi `interactive_content_based_recommendation` adalah antarmuka interaktif untuk sistem rekomendasi *content-based filtering*. Cara kerjanya, yaitu fungsi meminta pengguna memasukkan judul buku, lalu memeriksa apakah judul tersebut ada dalam `indices`. Jika ditemukan, fungsi memanggil fungsi rekomendasi yang diberikan (recommendation_func) dengan judul buku tersebut dan menampilkan hasilnya. Jika buku tidak ditemukan dan parameter `fallback` diaktifkan (default: True), fungsi akan mengambil judul buku pertama dari `indices` sebagai alternatif, memberitahu pengguna bahwa buku yang dicari tidak ditemukan, dan menampilkan rekomendasi untuk buku alternatif tersebut. Jika fallback dinonaktifkan, fungsi hanya memberitahu pengguna bahwa buku tidak ditemukan tanpa memberikan rekomendasi alternatif. Fungsi ini dipanggil dengan `indices` (*dictionary* judul buku dan indeksnya) dan `content_based_recommendations` (fungsi yang menghitung rekomendasi) sebagai parameter.
 
-##### Contoh Output
+##### **Contoh Output**
 
 Ketika pengguna mengetik:
 
@@ -405,19 +405,19 @@ Dan buku tersebut ditemukan, maka sistem akan menampilkan:
     ```
 
 
-### Collaborative Filtering
+### 🤝 Collaborative Filtering
 
 Model *collaborative filtering* ini menggunakan *neural network*. Pertama, model dibuat dengan dua input (user dan buku) yang diubah menjadi vektor *embedding* 32-dimensi, kemudian di-*flatten* dan digabungkan. Vektor gabungan diproses melalui dua hidden layer (64 dan 32 neuron) dengan aktivasi ReLU, BatchNormalization, dan Dropout (0.3), berakhir pada output layer dengan 1 neuron untuk prediksi rating. Model dikompilasi dengan optimizer AdamW, fungsi loss MSE, dan metrik MAE, lalu dilatih dengan data rating yang dinormalisasi menggunakan *early stopping*. Fungsi `get_collaborative_recommendations` menggunakan model ini untuk memprediksi preferensi pengguna terhadap semua buku dengan mengambil indeks pengguna, menciptakan *array* berisi semua indeks buku, memprediksikan rating untuk setiap kombinasi pengguna-buku, mengurutkan hasilnya, dan mengembalikan top-n buku dengan prediksi rating tertinggi.
 
-#### Plot Loss
+#### **Plot Loss**
 
 Membuat visualisasi plot loss untuk membantu memantau dan menganalisis performa model selama pelatihan dengan melihat tren loss dan RMSE pada data training dan validasi. Visualisasi ini sangat penting untuk memastikan model yang dibangun efektif dan tidak terlalu fit terhadap data training saja.
 
-#### Example of Using Collaborative Filtering Recommendations 
+#### **Example of Using Collaborative Filtering Recommendations** 
 
 Setelah memastikan tidak *underfitting* dan *overfitting*, langkah selanjutnya yaitu implementasi fungsi rekomendasi berbasis *collaborative filtering*. Fungsi ini memudahkan mendapatkan rekomendasi yang relevan berdasarkan preferensi yang dipelajari model dari data historis interaksi pengguna dan buku. Berikut cuplikan kode dan penjelasannya:
 
-    ```python
+    ```
     example_user = cf_df['User-ID'].iloc[200]  # ambil salah satu user dari data
     recommendations = get_collaborative_recommendations(example_user, top_n=5)
     print(f"Rekomendasi buku untuk User {example_user}:")
@@ -425,11 +425,11 @@ Setelah memastikan tidak *underfitting* dan *overfitting*, langkah selanjutnya y
         print(f"{i}. {book}")
     ```
 
-##### Penjelasan Kode
+##### **Penjelasan Kode**
 
 Kode tersebut memilih satu pengguna acak dari dataset (dengan indeks 200), lalu menggunakan fungsi `get_collaborative_recommendations` untuk mendapatkan 5 rekomendasi buku teratas untuk pengguna tersebut berdasarkan teknik *collaborative filtering*. 
 
-##### Contoh Output
+##### **Contoh Output**
 
     ```
     Rekomendasi buku untuk User 132492:
@@ -446,7 +446,7 @@ Kode tersebut memilih satu pengguna acak dari dataset (dengan indeks 200), lalu 
 
 Dalam proyek ini, beberapa metrik evaluasi digunakan untuk menilai performa kedua model rekomendasi:
 
-### Content-Based Filtering
+### 🧠 Content-Based Filtering
 
 #### 1. Precision@k
 
@@ -533,7 +533,7 @@ Berikut penjelsan singkat mengenai hasil output di atas:
 
 3. Diversity : Berdasarkan output 0.7468 (74.68%), hal ini menunjukkan bahwa rekomendasi cukup beragam  satu sama lain, artinya model merekomendasikan item yang relatif tidak terlalu mirip satu sama lain (dari segi konten).
 
-### Collaborative Filtering
+### 🤝 Collaborative Filtering
 
 #### 1. RMSE (Root Mean Squared Error)
 
