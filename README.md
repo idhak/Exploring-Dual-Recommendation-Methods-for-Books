@@ -1,4 +1,6 @@
-# Exploring Dual Recommendation Methods for Books
+# ✨ Exploring Dual Recommendation Methods for Books 🧠⚔️🤝
+
+
 
 ## 🔎 Project Overview
 
@@ -238,93 +240,93 @@ df = books_ratings.copy()
 
 ### ▶️ Clean Book-Title
 
-    ```
-    df["Book-Title"] = df["Book-Title"].apply(lambda x: re.sub("[\W_]+", " ", x).strip())
-    ```
+```
+df["Book-Title"] = df["Book-Title"].apply(lambda x: re.sub("[\W_]+", " ", x).strip())
+```
 
 Pembersihan judul buku dengan menghapus karakter non-alfanumerik dan spasi berlebih dilakukan untuk standarisasi data teks. Hal ini akan meningkatkan akurasi dalam perbandingan judul buku dan mencegah duplikasi akibat perbedaan format penulisan.
 
 ### ▶️ Drop Irrelevant Columns
 
-    ```
-    df.drop(columns=["ISBN", "Image-URL-S", "Image-URL-M", "Image-URL-L"], inplace=True)
-    ``` 
+```
+df.drop(columns=["ISBN", "Image-URL-S", "Image-URL-M", "Image-URL-L"], inplace=True)
+``` 
 
 Kolom `ISBN` dan URL gambar dihapus karena tidak relevan dalam pembuatan model rekomendasi berbasis konten atau kolaboratif. `ISBN` merupakan identifier yang tidak membawa informasi konten buku, sementara URL gambar tidak diperlukan untuk analisis preferensi.
 
 ### ▶️ Drop Ratings == 0 and Missing Values
 
-    ```
-    df.drop(index=df[df["Book-Rating"]==0].index, inplace=True)
-    df.dropna(inplace=True)
-    ```
+```
+df.drop(index=df[df["Book-Rating"]==0].index, inplace=True)
+df.dropna(inplace=True)
+```
 
 Baris dengan nilai kosong dan rating = 0 dihapus karena tidak memberikan informasi preferensi pengguna.
 
 ### ▶️ Reset Index
 
-    ```
-    df.reset_index(drop=True,inplace=True)
-    ```
+```
+df.reset_index(drop=True,inplace=True)
+```
 
 Reset index dilakukan setelah penghapusan baris untuk memastikan indeks tetap berurutan dan tidak ada gap. Hal ini dilakukan untuk konsistensi dan memudahkan dalam mengakses data berdasarkan indeks.
 
 ### ▶️ Remove DuplicateS/Handling Duplicate untuk Content-Based Filtering
 
-    ```
-    cbf_df = df.drop_duplicates('Book-Title')
-    ```
+```
+cbf_df = df.drop_duplicates('Book-Title')
+```
 
 Data duplikat pada kolom judul buku dihapus untuk menghindari bias dan pengulangan.
 
 ### ▶️ Sampling Data untuk Content-Based Filtering
 
-    ```
-    cbf_df = cbf_df.sample(10000, random_state=42)
-    ```
+```
+cbf_df = cbf_df.sample(10000, random_state=42)
+```
 
 Membatasi jumlah maksimum buku sebesar 10.000 agar menghindari *Out of Memory* saat proses *similarity*.
 
 ### ▶️ Ekstraksi Fitur dengan TF-IDF untuk Content-Based Filtering
 
-    ```
-    cbf_df['content'] = cbf_df['Book-Title'] + ' ' + cbf_df['Book-Author'] + ' ' + cbf_df['Publisher']
-    tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
-    tfidf_matrix = tfidf.fit_transform(cbf_df['content'])
-    ```
+```
+cbf_df['content'] = cbf_df['Book-Title'] + ' ' + cbf_df['Book-Author'] + ' ' + cbf_df['Publisher']
+tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
+tfidf_matrix = tfidf.fit_transform(cbf_df['content'])
+```
 
 Fitur teks digabung dari kolom `Book-Title`, `Book-Author`, dan `Publisher`. Kemudian ditransformasikan ke bentuk vektor numerik menggunakan TF-IDF.
 
 ### ▶️ Filtering Data untuk Collaborative Filtering
 
-    ```
-    book_counts = df['Book-Title'].value_counts()
-    user_counts = df['User-ID'].value_counts()
-    filtered_books = book_counts[book_counts >= 15].index
-    filtered_users = user_counts[user_counts >= 15].index
-    cf_df = df[(df['Book-Title'].isin(filtered_books)) & (df['User-ID'].isin(filtered_users))]
-    ```
+```
+book_counts = df['Book-Title'].value_counts()
+user_counts = df['User-ID'].value_counts()
+filtered_books = book_counts[book_counts >= 15].index
+filtered_users = user_counts[user_counts >= 15].index
+cf_df = df[(df['Book-Title'].isin(filtered_books)) & (df['User-ID'].isin(filtered_users))]
+```
 
 Melakukan filtering user dan buku dengan minimal 15 rating, sehingga data yang dihasilkan `cf_df` lebih cocok untuk dianalisis menggunakan teknik *collaborative filtering*.
 
 ### ▶️ Mapping Data untuk Collaborative Filtering
 
-    ```
-    user_ids = cf_df['User-ID'].unique().tolist()
-    book_ids = cf_df['Book-Title'].unique().tolist()
-    user_to_index = {user: i for i, user in enumerate(user_ids)}
-    book_to_index = {book: i for i, book in enumerate(book_ids)}
-    cf_df['user_index'] = cf_df['User-ID'].map(user_to_index)
-    cf_df['book_index'] = cf_df['Book-Title'].map(book_to_index)
-    ```
+```
+user_ids = cf_df['User-ID'].unique().tolist()
+book_ids = cf_df['Book-Title'].unique().tolist()
+user_to_index = {user: i for i, user in enumerate(user_ids)}
+book_to_index = {book: i for i, book in enumerate(book_ids)}
+cf_df['user_index'] = cf_df['User-ID'].map(user_to_index)
+cf_df['book_index'] = cf_df['Book-Title'].map(book_to_index)
+```
 
 Melakukan mapping data yang bertujuan untuk mengubah ID pengguna dan judul buku (yang berupa string atau angka asli) menjadi angka berurutan. Hal ini sering dilakukan untuk memudahkan pemrosesan oleh model *machine learning* terutama model yang bekerja dengan matriks atau *array* numerik dan membuat representasi data yang lebih ringkas dalam beberapa algoritma.
 
 ### ▶️ Split Train/Test untuk Collaborative Filtering
 
-    ```
-    train_data, test_data = train_test_split(cf_df, test_size=0.2,  random_state=42)
-    ```
+```
+train_data, test_data = train_test_split(cf_df, test_size=0.2,  random_state=42)
+```
 
 Dataset *collaborative filtering* dibagi menjadi *data training* dan *testing* dengan rasio 80:20.
 
@@ -343,25 +345,25 @@ Cara kerjanya model ini, yaitu pertama memeriksa apakah judul buku ada dalam *da
 
 Sistem rekomendasi *content-based filtering* pada proyek ini dijalankan menggunakan fungsi berbasis input pengguna. Berikut adalah implementasi kode dan penjelasannya:
 
-    ```
-    # Contoh rekomendasi content-based filtering
-    def interactive_content_based_recommendation(indices, recommendation_func, fallback=True):
-        book_title = input("Masukkan judul buku: ").strip()
+```
+# Contoh rekomendasi content-based filtering
+def interactive_content_based_recommendation(indices, recommendation_func, fallback=True):
+    book_title = input("Masukkan judul buku: ").strip()
     
-        if book_title in indices:
-            print(f"\nRekomendasi untuk buku '{book_title}':")
-            print(recommendation_func(book_title))
-        elif fallback:
-            sample_title = indices.index[0]
-            print(f"\nBuku '{book_title}' tidak ditemukan dalam database.")
-            print(f"Berikut adalah rekomendasi untuk buku '{sample_title}':")
-            print(recommendation_func(sample_title))
-        else:
-            print(f"\nBuku '{book_title}' tidak ditemukan dalam database dan fallback dinonaktifkan.")
+    if book_title in indices:
+        print(f"\nRekomendasi untuk buku '{book_title}':")
+        print(recommendation_func(book_title))
+    elif fallback:
+        sample_title = indices.index[0]
+        print(f"\nBuku '{book_title}' tidak ditemukan dalam database.")
+        print(f"Berikut adalah rekomendasi untuk buku '{sample_title}':")
+        print(recommendation_func(sample_title))
+    else:
+        print(f"\nBuku '{book_title}' tidak ditemukan dalam database dan fallback dinonaktifkan.")
     
-    # Pemanggilan fungsi:        
-    interactive_content_based_recommendation(indices, content_based_recommendations)
-    ```
+# Pemanggilan fungsi:        
+interactive_content_based_recommendation(indices, content_based_recommendations)
+```
 
 ##### **Penjelasan Kode**
 
@@ -371,14 +373,14 @@ Fungsi `interactive_content_based_recommendation` adalah antarmuka interaktif un
 
 Ketika pengguna mengetik:
 
-    ```
-    Masukkan judul buku: Death Notes
-    ```
+```
+Masukkan judul buku: Death Notes
+```
 
 Dan buku tersebut ditemukan, maka sistem akan menampilkan:
 
-    ```
-    Rekomendasi untuk buku 'Death Notes':
+```
+Rekomendasi untuk buku 'Death Notes':
                                                  Book-Title      Book-Author  \
     1992                                     The Veiled One     Ruth Rendell   
     3376  Sins of the Fathers Formerly Titled a New Leas...     Ruth Rendell   
@@ -402,7 +404,7 @@ Dan buku tersebut ditemukan, maka sistem akan menampilkan:
     8289     Fawcett Books                1984          0.415223  
     8093  Random House Inc                1996          0.374384  
     2183      Bantam Books                1982          0.372153   
-    ```
+```
 
 
 ### 🤝 Collaborative Filtering
@@ -417,13 +419,13 @@ Membuat visualisasi plot loss untuk membantu memantau dan menganalisis performa 
 
 Setelah memastikan tidak *underfitting* dan *overfitting*, langkah selanjutnya yaitu implementasi fungsi rekomendasi berbasis *collaborative filtering*. Fungsi ini memudahkan mendapatkan rekomendasi yang relevan berdasarkan preferensi yang dipelajari model dari data historis interaksi pengguna dan buku. Berikut cuplikan kode dan penjelasannya:
 
-    ```
-    example_user = cf_df['User-ID'].iloc[200]  # ambil salah satu user dari data
-    recommendations = get_collaborative_recommendations(example_user, top_n=5)
-    print(f"Rekomendasi buku untuk User {example_user}:")
-    for i, book in enumerate(recommendations, 1):
-        print(f"{i}. {book}")
-    ```
+```
+example_user = cf_df['User-ID'].iloc[200]  # ambil salah satu user dari data
+recommendations = get_collaborative_recommendations(example_user, top_n=5)
+print(f"Rekomendasi buku untuk User {example_user}:")
+for i, book in enumerate(recommendations, 1):
+    print(f"{i}. {book}")
+```
 
 ##### **Penjelasan Kode**
 
@@ -431,14 +433,14 @@ Kode tersebut memilih satu pengguna acak dari dataset (dengan indeks 200), lalu 
 
 ##### **Contoh Output**
 
-    ```
-    Rekomendasi buku untuk User 132492:
+```
+Rekomendasi buku untuk User 132492:
     1. The Giving Tree
     2. The Diamond Age
     3. Dragonsong Harper Hall Trilogy
     4. The Color Purple
     5. The Far Side Gallery 4  
-    ```
+```
 
 ---
 
@@ -453,9 +455,9 @@ Dalam proyek ini, beberapa metrik evaluasi digunakan untuk menilai performa kedu
 Precision@k mengukur proporsi item yang relevan dari k rekomendasi teratas yang diberikan kepada pengguna.
 
 **Formula:**
-    ```
-    Precision@k = (Jumlah item relevan dalam k rekomendasi) / k
-    ```
+```
+Precision@k = (Jumlah item relevan dalam k rekomendasi) / k
+```
 
 **Cara Kerja**:
 
@@ -468,9 +470,9 @@ Precision@k mengukur proporsi item yang relevan dari k rekomendasi teratas yang 
 Coverage mengukur proporsi item dalam katalog yang dapat direkomendasikan oleh sistem.
 
 **Formula:**
-    ```
-    Coverage = (Jumlah unique item yang direkomendasikan) / (Total jumlah item)
-    ```
+```
+Coverage = (Jumlah unique item yang direkomendasikan) / (Total jumlah item)
+```
 
 **Cara kerja:**
 
@@ -484,9 +486,9 @@ Coverage mengukur proporsi item dalam katalog yang dapat direkomendasikan oleh s
 Diversity mengukur keragaman item dalam rekomendasi yang diberikan.
 
 **Formula:**
-    ```
-    Diversity = 1 - (Rata-rata similarity antar item yang direkomendasikan)
-    ```
+```
+Diversity = 1 - (Rata-rata similarity antar item yang direkomendasikan)
+```
 
 **Cara kerja:**
 
@@ -499,31 +501,31 @@ Diversity mengukur keragaman item dalam rekomendasi yang diberikan.
 
 Berikut perintah untuk menghasilkan hasil evaluasi model *content-based filtering*:
 
-    ```python
-    # Evaluasi model Content-Based Filtering
-    def evaluate_content_based_model(test_data, cbf_df, indices, cosine_sim):
-        precision_at_k = evaluate_content_based_precision_at_k(test_data, indices)
-        coverage = evaluate_content_based_coverage(cbf_df, indices)
-        diversity = evaluate_content_based_diversity(cbf_df, indices, cosine_sim)
+```python
+# Evaluasi model Content-Based Filtering
+def evaluate_content_based_model(test_data, cbf_df, indices, cosine_sim):
+    precision_at_k = evaluate_content_based_precision_at_k(test_data, indices)
+    coverage = evaluate_content_based_coverage(cbf_df, indices)
+    diversity = evaluate_content_based_diversity(cbf_df, indices, cosine_sim)
     
-        print("\nEvaluasi Model Content-Based Filtering:")
-        print(f"Precision@10: {precision_at_k:.4f}")
-        print(f"Coverage: {coverage:.4f}")
-        print(f"Diversity: {diversity:.4f}")
+    print("\nEvaluasi Model Content-Based Filtering:")
+    print(f"Precision@10: {precision_at_k:.4f}")
+    print(f"Coverage: {coverage:.4f}")
+    print(f"Diversity: {diversity:.4f}")
     
-        return precision_at_k, coverage, diversity
+    return precision_at_k, coverage, diversity
     
-    precision_at_k, coverage, diversity_cbf = evaluate_content_based_model(test_data, cbf_df, indices, cosine_sim)
-    ```
+precision_at_k, coverage, diversity_cbf = evaluate_content_based_model(test_data, cbf_df, indices, cosine_sim)
+```
 
 Output dari perintah di atas adalah sebagai berikut:
 
-    ```
-    Evaluasi Model Content-Based Filtering:
+```
+Evaluasi Model Content-Based Filtering:
     Precision@10: 0.0143
     Coverage: 0.0198
     Diversity: 0.7468
-    ```
+```
 
 Berikut penjelsan singkat mengenai hasil output di atas:
 
@@ -540,9 +542,9 @@ Berikut penjelsan singkat mengenai hasil output di atas:
 RMSE mengukur akurasi prediksi rating dalam sistem rekomendasi.
 
 **Formula:**
-    ```
-    RMSE = √(1/n ∑(y_true - y_pred)²)
-    ```
+```
+RMSE = √(1/n ∑(y_true - y_pred)²)
+```
 
 Di mana:
 - y_true adalah rating sebenarnya
@@ -561,9 +563,9 @@ Di mana:
 MAE mengukur rata-rata kesalahan absolut antara rating prediksi dan aktual.
 
 **Formula:**
-    ```
-    MAE = 1/n ∑|y_true - y_pred|
-    ```
+```
+MAE = 1/n ∑|y_true - y_pred|
+```
 
 **Cara kerja:**
 
@@ -575,9 +577,9 @@ MAE mengukur rata-rata kesalahan absolut antara rating prediksi dan aktual.
 Recall@k mengukur proporsi item relevan yang berhasil direkomendasikan dari total item relevan.
 
 **Formula:**
-    ```
-    Recall@k = (Jumlah item relevan dalam k rekomendasi) / (Total jumlah item relevan)
-    ```
+```
+Recall@k = (Jumlah item relevan dalam k rekomendasi) / (Total jumlah item relevan)
+```
 
 **Cara kerja:**
 
@@ -590,9 +592,9 @@ Recall@k mengukur proporsi item relevan yang berhasil direkomendasikan dari tota
 Hit Rate mengukur proporsi pengguna yang mendapatkan setidaknya satu rekomendasi yang relevan.
 
 **Formula:**
-    ```
-    Hit Rate = (Jumlah pengguna dengan ≥1 rekomendasi relevan) / (Total jumlah pengguna)
-    ```
+```
+Hit Rate = (Jumlah pengguna dengan ≥1 rekomendasi relevan) / (Total jumlah pengguna)
+```
 
 **Cara kerja:**
 
@@ -604,40 +606,39 @@ Hit Rate mengukur proporsi pengguna yang mendapatkan setidaknya satu rekomendasi
 
 Berikut perintah untuk menghasilkan hasil evaluasi model *collaborative filtering*:
 
-    ```python
-    def visualize_cf_metrics(rmse_actual, mae_actual, recall_at_10, hit_rate):
-        metrics_cf = ['RMSE/10', 'MAE/10', 'Recall@10', 'Hit Rate']
-        values_cf = [rmse_actual/10, mae_actual/10, recall_at_10, hit_rate]
+```python
+def visualize_cf_metrics(rmse_actual, mae_actual, recall_at_10, hit_rate):
+    metrics_cf = ['RMSE/10', 'MAE/10', 'Recall@10', 'Hit Rate']
+    values_cf = [rmse_actual/10, mae_actual/10, recall_at_10, hit_rate]
     
-        plt.figure(figsize=(10, 6))
-        bars = plt.bar(metrics_cf, values_cf, color=['red', 'blue', 'green', 'purple'])
+    plt.figure(figsize=(10, 6))
+    bars = plt.bar(metrics_cf, values_cf, color=['red', 'blue', 'green', 'purple'])
     
-        for bar in bars:
-            height = bar.get_height()
-            plt.text(bar.get_x() + bar.get_width()/2, height + 0.01,
-                    f'{height:.4f}', ha='center', va='bottom', fontsize=10)
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, height + 0.01,
+                f'{height:.4f}', ha='center', va='bottom', fontsize=10)
     
-        plt.title('Metrik Evaluasi untuk Collaborative Filtering')
-        plt.ylim(0, 1)
-        plt.ylabel('Skor')
-        plt.grid(axis='y', linestyle='--', alpha=0.7)
-        plt.show()
+    plt.title('Metrik Evaluasi untuk Collaborative Filtering')
+    plt.ylim(0, 1)
+    plt.ylabel('Skor')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.show()
     
-    rmse, mae, rmse_actual, mae_actual, recall_at_10, hit_rate = evaluate_collaborative_filtering(
-            model, test_data, user_ids, book_ids, user_to_index, book_to_index)
-    ```
+rmse, mae, rmse_actual, mae_actual, recall_at_10, hit_rate = evaluate_collaborative_filtering(model, test_data, user_ids, book_ids, user_to_index, book_to_index)
+```
 
 Output dari perintah di atas adalah sebagai berikut:
 
-    ```
-    Evaluasi Model Collaborative Filtering:
+```
+Evaluasi Model Collaborative Filtering:
     RMSE (skala 0-1): 0.1598
     MAE (skala 0-1): 0.1250
     RMSE (skala asli 1-10): 1.5983
     MAE (skala asli 1-10): 1.2503
     Recall@10: 0.0044
     Hit Rate: 0.0200
-    ```
+```
 
 Berikut penjelsan singkat mengenai hasil output di atas:
 
