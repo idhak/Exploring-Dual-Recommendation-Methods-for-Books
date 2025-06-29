@@ -234,13 +234,13 @@ Terdapat beberapa teknik data preparation yang dilakukan pada bagian ini yaitu s
 
 Pada tahap ini, membuat salinan (*copy*) dari **dataframe** `books_ratings` dan menyimpannya ke variabel baru bernama `df` terlebih dahulu agar perubahan yang dilakukan pada `df` tidak akan memengaruhi **dataframe** asli `books_ratings`. Berikut kode perintahnya.
 
-```
+```python
 df = books_ratings.copy()
 ```
 
 ### ▶️ Clean Book-Title
 
-```
+```python
 df["Book-Title"] = df["Book-Title"].apply(lambda x: re.sub("[\W_]+", " ", x).strip())
 ```
 
@@ -248,7 +248,7 @@ Pembersihan judul buku dengan menghapus karakter non-alfanumerik dan spasi berle
 
 ### ▶️ Drop Irrelevant Columns
 
-```
+```python
 df.drop(columns=["ISBN", "Image-URL-S", "Image-URL-M", "Image-URL-L"], inplace=True)
 ``` 
 
@@ -256,7 +256,7 @@ Kolom `ISBN` dan URL gambar dihapus karena tidak relevan dalam pembuatan model r
 
 ### ▶️ Drop Ratings == 0 and Missing Values
 
-```
+```python
 df.drop(index=df[df["Book-Rating"]==0].index, inplace=True)
 df.dropna(inplace=True)
 ```
@@ -265,7 +265,7 @@ Baris dengan nilai kosong dan rating = 0 dihapus karena tidak memberikan informa
 
 ### ▶️ Reset Index
 
-```
+```python
 df.reset_index(drop=True,inplace=True)
 ```
 
@@ -273,7 +273,7 @@ Reset index dilakukan setelah penghapusan baris untuk memastikan indeks tetap be
 
 ### ▶️ Remove DuplicateS/Handling Duplicate untuk Content-Based Filtering
 
-```
+```python
 cbf_df = df.drop_duplicates('Book-Title')
 ```
 
@@ -281,7 +281,7 @@ Data duplikat pada kolom judul buku dihapus untuk menghindari bias dan pengulang
 
 ### ▶️ Sampling Data untuk Content-Based Filtering
 
-```
+```python
 cbf_df = cbf_df.sample(10000, random_state=42)
 ```
 
@@ -289,7 +289,7 @@ Membatasi jumlah maksimum buku sebesar 10.000 agar menghindari *Out of Memory* s
 
 ### ▶️ Ekstraksi Fitur dengan TF-IDF untuk Content-Based Filtering
 
-```
+```python
 cbf_df['content'] = cbf_df['Book-Title'] + ' ' + cbf_df['Book-Author'] + ' ' + cbf_df['Publisher']
 tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
 tfidf_matrix = tfidf.fit_transform(cbf_df['content'])
@@ -299,7 +299,7 @@ Fitur teks digabung dari kolom `Book-Title`, `Book-Author`, dan `Publisher`. Kem
 
 ### ▶️ Filtering Data untuk Collaborative Filtering
 
-```
+```python
 book_counts = df['Book-Title'].value_counts()
 user_counts = df['User-ID'].value_counts()
 filtered_books = book_counts[book_counts >= 15].index
@@ -311,7 +311,7 @@ Melakukan filtering user dan buku dengan minimal 15 rating, sehingga data yang d
 
 ### ▶️ Mapping Data untuk Collaborative Filtering
 
-```
+```python
 user_ids = cf_df['User-ID'].unique().tolist()
 book_ids = cf_df['Book-Title'].unique().tolist()
 user_to_index = {user: i for i, user in enumerate(user_ids)}
@@ -324,7 +324,7 @@ Melakukan mapping data yang bertujuan untuk mengubah ID pengguna dan judul buku 
 
 ### ▶️ Split Train/Test untuk Collaborative Filtering
 
-```
+```python
 train_data, test_data = train_test_split(cf_df, test_size=0.2,  random_state=42)
 ```
 
@@ -345,7 +345,7 @@ Cara kerjanya model ini, yaitu pertama memeriksa apakah judul buku ada dalam *da
 
 Sistem rekomendasi *content-based filtering* pada proyek ini dijalankan menggunakan fungsi berbasis input pengguna. Berikut adalah implementasi kode dan penjelasannya:
 
-```
+```python
 # Contoh rekomendasi content-based filtering
 def interactive_content_based_recommendation(indices, recommendation_func, fallback=True):
     book_title = input("Masukkan judul buku: ").strip()
@@ -419,7 +419,7 @@ Membuat visualisasi plot loss untuk membantu memantau dan menganalisis performa 
 
 Setelah memastikan tidak *underfitting* dan *overfitting*, langkah selanjutnya yaitu implementasi fungsi rekomendasi berbasis *collaborative filtering*. Fungsi ini memudahkan mendapatkan rekomendasi yang relevan berdasarkan preferensi yang dipelajari model dari data historis interaksi pengguna dan buku. Berikut cuplikan kode dan penjelasannya:
 
-```
+```python
 example_user = cf_df['User-ID'].iloc[200]  # ambil salah satu user dari data
 recommendations = get_collaborative_recommendations(example_user, top_n=5)
 print(f"Rekomendasi buku untuk User {example_user}:")
