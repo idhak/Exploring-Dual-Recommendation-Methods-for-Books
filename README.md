@@ -649,7 +649,7 @@ Berikut penjelsan singkat mengenai hasil output di atas:
 
 - Hit Rate menunjukkan seberapa sering setidaknya satu item yang direkomendasikan muncul di daftar item yang benar-benar relevan bagi pengguna. Nilai 0.02 berarti hanya 2% dari pengguna yang mendapat rekomendasi yang sesuai (hit), sisanya yaitu 98% dari pengguna tidak mendapatkan rekomendasi yang cocok sama sekali dari sistem.
 
-### Kesimpulan
+### 📌 Conclusion
 
 **Perbandingan Model Sistem Rekomendasi**:
 1. *Content-Based Filtering*
